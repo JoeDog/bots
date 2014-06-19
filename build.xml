@@ -1,0 +1,53 @@
+<project name="bots" basedir="." default="compile">
+  <property name="home.dir"  value="." />
+  <property name="etc.dir"   value="etc" />
+  <property name="src.dir"   value="src" />
+  <property name="build.dir" value="out" />
+  <property name="dist.dir"  value="${basedir}" />
+
+  <target name="clean">
+    <delete dir="${build.dir}"></delete>
+  </target>
+
+  <path id="classpath">
+    <pathelement location="${build.dir}" />
+  </path>
+
+  <target name="compile">
+    <mkdir dir="${build.dir}" />
+    <javac debug="true" includeantruntime="false" srcdir="${src.dir}" destdir="${build.dir}">
+      <classpath refid="classpath" />
+      <include name="**/*.java"/>
+    </javac>        
+  </target>
+
+  <target name="docs">
+    <javadoc packagenames="org.joedog.*"
+             sourcepath="src"
+             defaultexcludes="yes"
+             destdir="docs/api"
+             author="true"
+             version="true"
+             use="true"
+             windowtitle="Pinochle API">
+      <doctitle><![CDATA[<h1>Pinochle</h1>]]></doctitle>
+      <bottom><![CDATA[<i>Copyright &#169; 2013 Jeffrey Fulmer, et al. All Rights Reserved.</i>]]></bottom>
+      <tag name="todo" scope="all" description="To do:"/>
+      <group title="Group 1 Packages" packages="com.dummy.test.a*"/>
+      <group title="Group 2 Packages" packages="com.dummy.test.b*:com.dummy.test.c*"/>
+      <link offline="true" href="http://docs.oracle.com/javase/7/docs/api/" packagelistLoc="C:\tmp"/>
+      <link href="http://docs.oracle.com/javase/7/docs/api/"/>
+    </javadoc>
+  </target>
+
+  <target name="run" depends="clean,compile">
+    <copy todir="${build.dir}" >
+      <fileset dir="${etc.dir}" includes="run.html" />
+    </copy>
+    <exec dir="." executable="appletviewer">
+      <arg value="out/run.html" />
+    </exec>
+  </target>
+
+  <target name="main" depends="clean,run" />
+</project>
