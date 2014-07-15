@@ -1,23 +1,25 @@
 package org.joedog.bots.model;
 
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.awt.Point;
+import java.lang.Thread;
 
 import org.joedog.bots.actor.*;
 import org.joedog.bots.model.Location;
 import org.joedog.util.RandomUtils;
 import org.joedog.util.Sleep;
 
-public class Arena implements ActorCollisionListener, SceneCollisionListener {
+public final class Arena implements ActorCollisionListener, SceneCollisionListener {
   public static final  int VERTICAL   = 0;
   public static final  int HORIZONTAL = 1;
 
-  private Bully        bully       = null;
+  private Bully  bully             = null;
+  private static Arena INSTANCE    = new Arena();
   private static final Object lock = new Object();
   private ActorFactory factory     = new ActorFactoryImpl();
-  private List<Actor>  scene       = new ArrayList<Actor>();
+  private static List<Actor> scene; // = Collections.synchronizedList(new ArrayList<Actor>());
   private int   cols;
   private int   rows;
   private int   cellsize;
@@ -28,15 +30,21 @@ public class Arena implements ActorCollisionListener, SceneCollisionListener {
   private ArenaRunner runner;
   private boolean     running = true;
 
-  public Arena() {
+  private Arena() {
+    if (INSTANCE != null) {
+      throw new IllegalStateException("Already instantiated");
+    }
     this.bully    = new Bully();
     this.width    = Config.WIDTH;
     this.height   = Config.HEIGHT;
     this.cellsize = 32;
     this.cols     = this.width  / this.cellsize;
     this.rows     = this.height / this.cellsize;
+    if (this.scene == null) {
+      this.scene  = Collections.synchronizedList(new ArrayList<Actor>());
+    }
     this.createScene();
-    synchronized (lock) {
+    synchronized (scene) {
       this.bully.addActorCollisionListener(this);
       this.bully.addSceneCollisionListener(this);
       this.scene.remove(this.getActor(new Location(5, 15)));
@@ -49,13 +57,20 @@ public class Arena implements ActorCollisionListener, SceneCollisionListener {
     this.runner.start();
   }
 
-  private void act() {
-    synchronized (lock) {
-      List<Actor> copy = new ArrayList<Actor>(scene.size());
-      for (Actor item: scene) copy.add(item.clone());
+  public static Arena getInstance() {
+    if (INSTANCE == null) {
+      for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+        System.out.println(ste);
+      }
+    }
+    return INSTANCE; 
+  }
 
-      for (Actor a : copy)
+  private void act() {
+    synchronized (this.scene) {
+      for (Actor a : this.scene) {
         a.act();
+      }
     }
   }
 
@@ -113,7 +128,9 @@ public class Arena implements ActorCollisionListener, SceneCollisionListener {
   }
 
   public void evaluate() {
-    //System.out.println(this.toString());
+    boolean print = false;
+    Actor b;
+
     for (int x = 0; x < this.rows; x++) {
       for (int y = 0; y < this.cols; y++) {
         Actor actor = this.getActor(new Location(y, x));
@@ -124,8 +141,17 @@ public class Arena implements ActorCollisionListener, SceneCollisionListener {
         if (res >= 3) {
           for (int i = y; i < (y+res); i++) {
             Actor a = this.getActor(new Location(i, x));
-            //if (a != null) a.getLocation().highlight(true);
-            if (a != null) this.removeActor(a);
+            if (a != null) {
+              if (a.getType() == Actor.TREAT) {
+                print = true;
+                System.out.println("evaluate(): "+Thread.currentThread().getId());
+                b = factory.getActor(Actor.TRACK);
+                b.addActorCollisionListener(this);
+                this.replaceActor(b, new Location(i, x));
+              } else {
+                this.removeActor(a);
+              }
+            }
           }
         }
       }
@@ -140,12 +166,21 @@ public class Arena implements ActorCollisionListener, SceneCollisionListener {
         if (res >= 3) {
           for (int i = x; i < (x+res); i++) {
             Actor a = this.getActor(new Location(y, i));
-            if (a != null) this.removeActor(a);
-            //if (a != null) a.getLocation().highlight(true);
+            if (a != null) {
+              if (a.getType() == Actor.TREAT) {
+                print = true;
+                b = factory.getActor(Actor.TRACK);
+                b.addActorCollisionListener(this);
+                this.replaceActor(b, new Location(y, i));
+              } else {
+                this.removeActor(a);
+              }
+            }
           }
         }
       }
     }
+    if (print) System.out.println("END OF EVALUATE:\n"+this.toString());
   }
 
   public void clear() {
@@ -203,7 +238,7 @@ public class Arena implements ActorCollisionListener, SceneCollisionListener {
 
   public ArrayList<Location> getLocations() {
     ArrayList <Location> list = new ArrayList<Location>();
-    synchronized (lock) {
+    synchronized (scene) {
       for (Actor a : scene) 
         list.add(a.getLocation());
     }
@@ -212,7 +247,7 @@ public class Arena implements ActorCollisionListener, SceneCollisionListener {
 
   public ArrayList<Actor> getActors() {
     ArrayList<Actor> list = new ArrayList<Actor>();
-    synchronized (lock) {
+    synchronized (scene) {
       for (Actor a : scene)
         list.add(a);
     }
@@ -221,7 +256,7 @@ public class Arena implements ActorCollisionListener, SceneCollisionListener {
 
   public ArrayList<Actor> getActors(Class clazz) {
     ArrayList<Actor> list = new ArrayList<Actor>();
-    synchronized (lock) {
+    synchronized (scene) {
       for (Actor a : scene)
         if (a.getClass() == clazz)
           list.add(a);
@@ -285,22 +320,18 @@ public class Arena implements ActorCollisionListener, SceneCollisionListener {
     return new Location(xpos, ypos);  
   }
 
-  public boolean occupied(Location location) {
+  public synchronized boolean occupied(Location location) {
     if (! inGrid(location)) {
       return true;
     }
 
-    synchronized (lock) {
-      List<Actor> copy = new ArrayList<Actor>(scene.size());
-      for (Actor item: scene) copy.add(item.clone());
-
-      for (Actor actor : copy) {
+    synchronized (scene) {
+      for (Actor actor : scene) {
         if (actor == null) {
           System.out.println("Actor is null!");
           return false;
         }
         if (actor.getLocation().equals(location)) {
-          //System.out.println("Actor: "+actor.toString()+"'s location: "+actor.getLocation().toString()+" equals "+location.toString());
           return true;
         }
       }
@@ -309,7 +340,7 @@ public class Arena implements ActorCollisionListener, SceneCollisionListener {
   }
 
   public Actor getActor(Location location) {
-    synchronized (lock) {
+    synchronized (scene) {
       for (Actor actor : scene) {
         if (! inGrid(location)) {
           return null;
@@ -402,7 +433,7 @@ public class Arena implements ActorCollisionListener, SceneCollisionListener {
   }
 
   public void addActor(Actor actor, Location location, int heading) {
-    synchronized (lock) {
+    synchronized (scene) {
       this.scene.remove(actor); // just one copy, please
       actor.setArena(this);
       actor.setX(location.getX());
@@ -413,15 +444,30 @@ public class Arena implements ActorCollisionListener, SceneCollisionListener {
   }
 
   public void removeActor(Actor actor) {
-    synchronized (lock) {
+    synchronized (scene) {
       this.scene.remove(actor); 
     }
   }
 
   public void removeActor(Location location) {
-    synchronized (lock) {
+    synchronized (scene) {
       Actor actor = this.getActor(location);
       this.scene.remove(actor); 
+    }
+  }
+
+  public void replaceActor(Actor newActor, Location location) {
+    synchronized (this) {
+      System.out.println("replaceActor(): "+Thread.currentThread().getId());
+      Actor oldActor = this.getActor(location);
+      int   index    = this.scene.indexOf(oldActor);
+      newActor.setArena(this);
+      newActor.setX(location.getX());
+      newActor.setY(location.getY());
+      this.scene.set(index, newActor);
+      System.out.println("REPLACE ACTOR: "+newActor.toString()+" at "+index+" => "+location.toString());
+      System.out.println("ACTOR IN SCENE: "+this.scene.indexOf(newActor));
+      System.out.println("Occupied? "+this.occupied(newActor.getLocation()));
     }
   }
 
@@ -520,8 +566,9 @@ public class Arena implements ActorCollisionListener, SceneCollisionListener {
   private class ArenaRunner extends Thread {
     public void run() {
       while (running) {
-        act();
         entrance();
+        evaluate();
+        act();
         Sleep.sleep(1);
       }
     }
