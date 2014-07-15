@@ -23,19 +23,9 @@ public class GameEngine {
   private int y = 0;
 
   public GameEngine() {
-    this.arena      = new Arena();
+    this.arena      = Arena.getInstance();
     this.renderer   = new SimpleArenaRenderer(arena);
     this.controller = new ArenaMaster(arena);
-    Runnable myRunnable = new Runnable(){
-      public void run(){
-        do {
-          arena.evaluate();
-          Sleep.sleep(5);
-        } while (true);
-      }
-    };
-    Thread thread = new Thread(myRunnable);
-    thread.start();
   }
 
   public void clear() {
@@ -62,7 +52,6 @@ public class GameEngine {
     } else {
       arena.printActor(x, y);
     }
-    //arena.search(x, y);
   }
 
   public void update(float deltaTime) {
