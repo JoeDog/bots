@@ -1,6 +1,7 @@
 package org.joedog.bots.actor;
 
 import java.util.ArrayList;
+import java.lang.Thread; // XXX
 
 import org.joedog.bots.model.Arena;
 import org.joedog.bots.model.Location;
@@ -52,13 +53,18 @@ public abstract class Actor implements Cloneable, ActorCollisionListener, SceneC
     }
     if (this.arena.occupied(location)) {
       return;
+    } else {
+      System.out.println("Location: "+location.toString()+" is not occupied ("+Thread.currentThread().getId()+")");
     }
-    System.out.println("moving....");
     setLocation(location);
   }
 
   public void setArena(Arena arena) {
     this.arena = arena;
+  }
+
+  public String showArena() {
+    return this.arena.toString();
   }
 
   public void setHeading(double heading) {
@@ -183,6 +189,11 @@ public abstract class Actor implements Cloneable, ActorCollisionListener, SceneC
   
   public synchronized void addSceneCollisionListener(SceneCollisionListener listener) {
     this.sceneCollisionListener = listener;
+  }
+
+  @Override 
+  public void finalize() {
+    System.out.println("GC reclaimed me! ("+this.type+")");
   }
 
   public Actor clone() {
