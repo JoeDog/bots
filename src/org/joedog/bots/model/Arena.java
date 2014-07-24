@@ -25,10 +25,13 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
   private int   cellsize;
   private int   width;
   private int   height;
+  private int   turns = 25;
   private Point p1 = new Point(); // 0,0
   private Point p2 = new Point(); // 0,0
   private ArenaRunner runner;
   private boolean     running = true;
+  private boolean     ready   = false;
+  private int         checks  = 0; // XXX: see evaluate. this can't remain here...
 
   private Arena() {
     if (INSTANCE != null) {
@@ -55,6 +58,14 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     this.bully.addCollisionActors(this.getActors());
     this.runner = new ArenaRunner();
     this.runner.start();
+  }
+
+  public void setTurns(int turns) {
+    this.turns = turns;
+  }
+
+  public int getTurns() {
+    return (this.turns < 1) ? 0 : this.turns; // don't want to send -1
   }
 
   public static Arena getInstance() {
@@ -86,6 +97,7 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
       if (swappable(star.getType(), temp, dir[i])) {
         star.setLocation(dest);
         fill.setLocation(orig);
+        turns--;
         return true;
       }
     } 
@@ -101,6 +113,7 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
       if (this.getActor(east).getType() == star.getType() && this.getActor(west).getType() == star.getType()) {
         star.setLocation(dest);
         fill.setLocation(orig);
+        turns--;
         return true;
       }
     }
@@ -110,6 +123,7 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
       if (this.getActor(north).getType() == star.getType() && this.getActor(south).getType() == star.getType()) {
         star.setLocation(dest);
         fill.setLocation(orig);
+        turns--;
         return true;
       }
     }
@@ -128,9 +142,7 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
   }
 
   public void evaluate() {
-    boolean print = false;
-    Actor b;
-
+    System.out.println("READY: "+this.ready);
     for (int x = 0; x < this.rows; x++) {
       for (int y = 0; y < this.cols; y++) {
         Actor actor = this.getActor(new Location(y, x));
@@ -143,11 +155,15 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
             Actor a = this.getActor(new Location(i, x));
             if (a != null) {
               if (a.getType() == Actor.TREAT) {
-                print = true;
-                System.out.println("evaluate(): "+Thread.currentThread().getId());
-                b = factory.getActor(Actor.TRACK);
-                b.addActorCollisionListener(this);
-                this.replaceActor(b, new Location(i, x));
+                if (! this.ready) { 
+                  this.removeActor(a);
+                } else {
+                  Actor b = factory.getActor(Actor.TRACK);
+                  b.addActorCollisionListener(this);
+                  this.replaceActor(b, new Location(i, x));
+                }
+              } else if (! a.isCrushable()) {
+                ;
               } else {
                 this.removeActor(a);
               }
@@ -168,10 +184,15 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
             Actor a = this.getActor(new Location(y, i));
             if (a != null) {
               if (a.getType() == Actor.TREAT) {
-                print = true;
-                b = factory.getActor(Actor.TRACK);
-                b.addActorCollisionListener(this);
-                this.replaceActor(b, new Location(y, i));
+                if (! this.ready) { 
+                  this.removeActor(a);
+                } else {
+                  Actor b = factory.getActor(Actor.TRACK);
+                  b.addActorCollisionListener(this);
+                  this.replaceActor(b, new Location(y, i));
+                }
+              } else if (! a.isCrushable()) {
+                ;
               } else {
                 this.removeActor(a);
               }
@@ -180,7 +201,9 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
         }
       }
     }
-    if (print) System.out.println("END OF EVALUATE:\n"+this.toString());
+    // XXX: need a real ready test....
+    checks++;
+    if (checks >= 50) this.ready = true;
   }
 
   public void clear() {
@@ -328,7 +351,6 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     synchronized (scene) {
       for (Actor actor : scene) {
         if (actor == null) {
-          System.out.println("Actor is null!");
           return false;
         }
         if (actor.getLocation().equals(location)) {
@@ -362,7 +384,6 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
    */
   public Actor getActor(int x, int y) {
     Location location = this.getLocation(x, y);
-    //System.out.println("LOCATION: "+location+" ["+x+","+y+"]");
     return this.getActor(location);
   }
 
@@ -458,16 +479,12 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
 
   public void replaceActor(Actor newActor, Location location) {
     synchronized (this) {
-      System.out.println("replaceActor(): "+Thread.currentThread().getId());
       Actor oldActor = this.getActor(location);
       int   index    = this.scene.indexOf(oldActor);
       newActor.setArena(this);
       newActor.setX(location.getX());
       newActor.setY(location.getY());
       this.scene.set(index, newActor);
-      System.out.println("REPLACE ACTOR: "+newActor.toString()+" at "+index+" => "+location.toString());
-      System.out.println("ACTOR IN SCENE: "+this.scene.indexOf(newActor));
-      System.out.println("Occupied? "+this.occupied(newActor.getLocation()));
     }
   }
 
@@ -506,10 +523,8 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     // We add each
     for (int x = 0; x < this.cols; x++) {
       if (! occupied(x, 0)) {
-        int num = RandomUtils.range(1, 8);
+        int num = RandomUtils.range(4, 7);
         Actor actor = factory.getActor(num);
-        if (actor == null) 
-          System.out.println("Actor is null ("+actorAsString(num)+")");
         actor.addActorCollisionListener(this);
         this.addActor(actor, new Location(x, 0));
       }
@@ -520,7 +535,7 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     for (int x = 0; x < this.cols; x++) {
       for (int y = 0; y < this.rows; y++) {
         if (! occupied(x, y)) {
-          int num = RandomUtils.range(2, 8);
+          int num = RandomUtils.range(4, 7);
           Actor actor = factory.getActor(num);
           actor.addActorCollisionListener(this);
           this.addActor(actor, new Location(x, y));
@@ -533,7 +548,6 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
    * convenience method for debugging movement
    */
   private String headingAsString(int heading) {
-    System.out.println("HEADING NUMBER: "+heading);
     switch (heading) {
       case Location.EAST:       return "EAST";
       case Location.SOUTHEAST:  return "SOUTHEAST";
