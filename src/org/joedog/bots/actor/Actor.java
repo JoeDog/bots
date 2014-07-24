@@ -23,6 +23,7 @@ public abstract class Actor implements Cloneable, ActorCollisionListener, SceneC
   protected Arena    arena;
   protected double   heading; 
   protected boolean  moveable   = false;
+  protected boolean  crushable  = true;
   protected Location location   = new Location(0, 0);
   protected Location wherefrom  = new Location(0, 0);
   protected Location birthplace = new Location(0, 0);
@@ -53,8 +54,6 @@ public abstract class Actor implements Cloneable, ActorCollisionListener, SceneC
     }
     if (this.arena.occupied(location)) {
       return;
-    } else {
-      System.out.println("Location: "+location.toString()+" is not occupied ("+Thread.currentThread().getId()+")");
     }
     setLocation(location);
   }
@@ -104,6 +103,10 @@ public abstract class Actor implements Cloneable, ActorCollisionListener, SceneC
     this.wherefrom = this.location.clone();
     this.location.setX(x);
     this.location.setY(y);
+  }
+
+  public boolean isCrushable() {
+    return this.crushable;
   }
 
   public int getAction() {

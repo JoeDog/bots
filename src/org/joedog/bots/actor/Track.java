@@ -4,8 +4,9 @@ package org.joedog.bots.actor;
 public class Track extends Actor {
 
   public Track () {
-    this.type     = TRACK;
-    this.moveable = false;
+    this.type      = TRACK;
+    this.moveable  = false;
+    this.crushable = false;
   }
 
   public void act() {
