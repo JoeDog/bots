@@ -202,6 +202,6 @@ public class SimpleArenaRenderer implements Renderer {
     g.setColor(Color.GREEN);
     g.clearRect(0, (arena.getRows() * cellSize), arena.getWidth(),  (arena.getRows() * cellSize) + 20);
     g.setFont(new Font("Helvetica", Font.PLAIN, 12));
-    g.drawString("Chewies: "+arena.getBully().getBonies(), 5, (arena.getRows() * cellSize) + 20);
+    g.drawString("Turns: "+arena.getTurns(), 5, (arena.getRows() * cellSize) + 20);
   }
 }
