@@ -41,12 +41,10 @@
   </target>
 
   <target name="run" depends="clean,compile">
-    <copy todir="${build.dir}" >
-      <fileset dir="${etc.dir}" includes="run.html" />
-    </copy>
-    <exec dir="." executable="appletviewer">
-      <arg value="out/run.html" />
-    </exec>
+    <java classname="org.joedog.${ant.project.name}.Main" fork="true" spawn="false">
+      <classpath refid="classpath" />
+      <jvmarg value=""/>
+    </java>
   </target>
 
   <target name="main" depends="clean,run" />
