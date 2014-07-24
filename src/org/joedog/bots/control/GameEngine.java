@@ -6,6 +6,7 @@ import java.awt.event.KeyEvent;
 import java.awt.Graphics;
 import java.lang.Runnable;
 import java.lang.Thread;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.joedog.bots.model.Arena;
 import org.joedog.bots.model.Location;
@@ -15,12 +16,15 @@ import org.joedog.bots.view.SimpleArenaRenderer;
 import org.joedog.util.Sleep;
 
 public class GameEngine {
+  private Thread      thread;
   private Arena       arena;
   private Renderer    renderer;
   private ArenaMaster controller;
   private Graphics    g = null;
   private int x = 0;
   private int y = 0;
+  private AtomicBoolean hiatus = new AtomicBoolean(false);
+
 
   public GameEngine() {
     this.arena      = Arena.getInstance();
@@ -73,5 +77,17 @@ public class GameEngine {
   public void render(Graphics g) {
     this.setGraphics(g);
     renderer.render(g);
+  }
+
+  public void addThread(Thread thread) {
+    this.thread = thread;
+  }
+
+  public void pause(boolean b) {
+    hiatus.set(b);
+  }
+
+  public boolean isPaused() {
+    return hiatus.get();
   }
 }
