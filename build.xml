@@ -43,7 +43,7 @@
   <target name="run" depends="clean,compile">
     <java classname="org.joedog.${ant.project.name}.Main" fork="true" spawn="false">
       <classpath refid="classpath" />
-      <jvmarg value=""/>
+      <jvmarg value="-splash:${build.dir}org/joedog/pinochle/images/splash.png -XX:-OmitStackTraceInFastThrow"/>
     </java>
   </target>
 

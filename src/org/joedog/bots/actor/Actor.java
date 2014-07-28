@@ -194,11 +194,6 @@ public abstract class Actor implements Cloneable, ActorCollisionListener, SceneC
     this.sceneCollisionListener = listener;
   }
 
-  @Override 
-  public void finalize() {
-    System.out.println("GC reclaimed me! ("+this.type+")");
-  }
-
   public Actor clone() {
     Actor copy = null;
     

@@ -203,5 +203,10 @@ public class SimpleArenaRenderer implements Renderer {
     g.clearRect(0, (arena.getRows() * cellSize), arena.getWidth(),  (arena.getRows() * cellSize) + 20);
     g.setFont(new Font("Helvetica", Font.PLAIN, 12));
     g.drawString("Turns: "+arena.getTurns(), 5, (arena.getRows() * cellSize) + 20);
+
+    if (arena.getTurns() == 0) {
+      g.setFont(new Font("Helvetica", Font.BOLD, 24));
+      g.drawString("GAME OVER", 5, (arena.getRows() / cellSize) + 20);
+    }
   }
 }

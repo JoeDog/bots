@@ -46,13 +46,12 @@ public class Main extends JPanel implements MouseListener {
     canvas.setFocusable(true);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.setContentPane(panel); 
-    frame.setPreferredSize(new Dimension(Config.WIDTH+16, Config.HEIGHT+94));
-    frame.setSize(Config.WIDTH+16, Config.HEIGHT+94);
+    frame.setPreferredSize(new Dimension(Config.WIDTH+20, Config.HEIGHT+94));
+    frame.setSize(Config.WIDTH+20, Config.HEIGHT+94);
     frame.pack();
     frame.setLocation(10, 10);
     frame.setVisible(true);
     Rectangle r = frame.getBounds();
-    System.out.println("W: "+r.width+" H: "+r.height);
   }
 
   public void mousePressed(MouseEvent e){
@@ -81,12 +80,12 @@ public class Main extends JPanel implements MouseListener {
   }
 
   public static void main(String[] args) {
-    if (engine == null) {
-      engine = new GameEngine();
-    }
-
     if (canvas == null) {
       canvas = new Canvas();
+    }
+
+    if (engine == null) {
+      engine = new GameEngine(canvas);
     }
 
     try {
@@ -111,9 +110,8 @@ public class Main extends JPanel implements MouseListener {
     });
 
     while (true) {
-      Game game = new Game(engine, canvas);
+      Game game = new Game(engine);
       GameThread thread = new GameThread(game);
-      engine.addThread(thread);
       thread.start();
       while (thread.isAlive()) ;
     }

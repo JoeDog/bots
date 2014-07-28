@@ -25,7 +25,7 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
   private int   cellsize;
   private int   width;
   private int   height;
-  private int   turns = 25;
+  private int   turns = 5;
   private Point p1 = new Point(); // 0,0
   private Point p2 = new Point(); // 0,0
   private ArenaRunner runner;
@@ -58,6 +58,10 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     this.bully.addCollisionActors(this.getActors());
     this.runner = new ArenaRunner();
     this.runner.start();
+  }
+
+  public boolean isReady() {
+    return this.ready;
   }
 
   public void setTurns(int turns) {
@@ -142,7 +146,6 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
   }
 
   public void evaluate() {
-    System.out.println("READY: "+this.ready);
     for (int x = 0; x < this.rows; x++) {
       for (int y = 0; y < this.cols; y++) {
         Actor actor = this.getActor(new Location(y, x));
@@ -203,7 +206,7 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     }
     // XXX: need a real ready test....
     checks++;
-    if (checks >= 50) this.ready = true;
+    if (checks >= 100) this.ready = true;
   }
 
   public void clear() {
