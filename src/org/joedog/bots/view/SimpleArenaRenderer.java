@@ -2,10 +2,13 @@ package org.joedog.bots.view;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.BasicStroke;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 
 import org.joedog.bots.model.Arena;
 import org.joedog.bots.model.Location;
@@ -26,7 +29,8 @@ public class SimpleArenaRenderer implements Renderer {
   private Color   cColor;
   private Color   tColor;
   private Color   eColor;
-  private boolean work = false;
+  private int     cellSize = 32; // XXX: HARDCODED!!!
+  private boolean work     = false;
   
   public SimpleArenaRenderer(Arena arena) {
     this.arena  = arena;
@@ -42,7 +46,6 @@ public class SimpleArenaRenderer implements Renderer {
     Graphics2D g2 = (Graphics2D) g; 
 
     // render the grid
-    int cellSize = 32; // XXX: HARDCODED!!!
     int pad      = (cellSize/2);
 
     g.setFont(new Font("Helvetica", Font.PLAIN, 18));
@@ -205,8 +208,25 @@ public class SimpleArenaRenderer implements Renderer {
     g.drawString("Turns: "+arena.getTurns(), 5, (arena.getRows() * cellSize) + 20);
 
     if (arena.getTurns() == 0) {
-      g.setFont(new Font("Helvetica", Font.BOLD, 24));
-      g.drawString("GAME OVER", 5, (arena.getRows() / cellSize) + 20);
+      //g.setFont(new Font("Helvetica", Font.BOLD, 24));
+      //g.drawString("GAME OVER", 5, (arena.getRows() / cellSize) + 20);
+      gameOver(g);
     }
+  }
+
+  public void gameOver(Graphics g) {
+    String over    = new String("GAME OVER");
+    Graphics2D g2  = (Graphics2D) g;
+    g2.setFont(new Font("Helvetica", Font.BOLD, 24));
+    FontMetrics fm = g2.getFontMetrics();
+    Rectangle2D r  = fm.getStringBounds(over, g2);
+    int x = ((arena.getCols()*cellSize) - (int) r.getWidth()) / 2;
+    int y = ((arena.getRows()*cellSize) - (int) r.getHeight()) / 2 + fm.getAscent();
+    g2.setColor(new Color(194, 194, 194));
+    g2.fill(new RoundRectangle2D.Double(x-20, y-(r.getHeight()+14), r.getWidth()+40, r.getHeight()+40, 10, 10));
+    g2.setColor(new Color(32, 32, 32));
+    g2.draw(new RoundRectangle2D.Double(x-20, y-(r.getHeight()+14), r.getWidth()+40, r.getHeight()+40, 10, 10));
+    g.setColor(new Color(42, 67, 58));
+    g2.drawString(over, x, y);
   }
 }

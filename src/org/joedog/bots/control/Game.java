@@ -37,7 +37,6 @@ public class Game {
           control.start();
           break;
         case GameEngine.OVER:
-          System.out.println("PAUSE IT!!!!!!");
           control.pause();
           break;
         case GameEngine.SCORE:

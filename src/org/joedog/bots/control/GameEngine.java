@@ -17,6 +17,7 @@ import org.joedog.bots.model.Location;
 import org.joedog.bots.actor.Bully;
 import org.joedog.bots.view.Renderer;
 import org.joedog.bots.view.SimpleArenaRenderer;
+import org.joedog.bots.view.RoundButton;
 import org.joedog.util.Sleep;
 
 public class GameEngine {
