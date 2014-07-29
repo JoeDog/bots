@@ -16,8 +16,7 @@ import org.joedog.bots.model.Config;
 import org.joedog.bots.model.Location;
 import org.joedog.bots.actor.Bully;
 import org.joedog.bots.view.Renderer;
-import org.joedog.bots.view.SimpleArenaRenderer;
-import org.joedog.bots.view.RoundButton;
+import org.joedog.bots.view.ArenaRenderer;
 import org.joedog.util.Sleep;
 
 public class GameEngine {
@@ -31,7 +30,7 @@ public class GameEngine {
   private Canvas      view;
   private Arena       arena;
   private Renderer    renderer;
-  private ArenaMaster controller;
+  //private ArenaMaster controller;
   private Graphics    g = null;
   private int x = 0;
   private int y = 0;
@@ -44,8 +43,8 @@ public class GameEngine {
   public GameEngine(Canvas view) {
     this.view       = view;
     this.arena      = Arena.getInstance();
-    this.renderer   = new SimpleArenaRenderer(arena);
-    this.controller = new ArenaMaster(arena);
+    this.renderer   = new ArenaRenderer(arena);
+    //this.controller = new ArenaMaster(arena);
     this.runner     = new GameRunner();
   }
 
@@ -81,7 +80,7 @@ public class GameEngine {
   }
 
   public void update(float deltaTime) {
-    controller.update(deltaTime);
+    //controller.update(deltaTime);
   }
 
   public void setGraphics(Graphics g) {
@@ -129,7 +128,6 @@ public class GameEngine {
         }
         break;
       case OVER:
-        System.out.println("OVER!!!!!!!!!!!!!!");
         break;
       case SCORE:
         this.over = false;

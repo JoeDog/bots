@@ -23,7 +23,7 @@ import org.joedog.bots.actor.Beddy;
 import org.joedog.bots.actor.Leash;
 import org.joedog.bots.actor.Treat;
 
-public class SimpleArenaRenderer implements Renderer {
+public class ArenaRenderer implements Renderer {
   private Arena   arena;
   private Color   bColor;
   private Color   cColor;
@@ -32,7 +32,7 @@ public class SimpleArenaRenderer implements Renderer {
   private int     cellSize = 32; // XXX: HARDCODED!!!
   private boolean work     = false;
   
-  public SimpleArenaRenderer(Arena arena) {
+  public ArenaRenderer(Arena arena) {
     this.arena  = arena;
     this.work   = true;
     this.bColor = new Color(144, 128, 128);
