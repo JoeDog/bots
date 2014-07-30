@@ -16,7 +16,6 @@ import org.joedog.bots.model.Config;
 import org.joedog.bots.model.Location;
 import org.joedog.bots.actor.Bully;
 import org.joedog.bots.view.Renderer;
-import org.joedog.bots.view.ArenaRenderer;
 import org.joedog.util.Sleep;
 
 public class GameEngine {
@@ -30,7 +29,6 @@ public class GameEngine {
   private Canvas      view;
   private Arena       arena;
   private Renderer    renderer;
-  //private ArenaMaster controller;
   private Graphics    g = null;
   private int x = 0;
   private int y = 0;
@@ -43,8 +41,7 @@ public class GameEngine {
   public GameEngine(Canvas view) {
     this.view       = view;
     this.arena      = Arena.getInstance();
-    this.renderer   = new ArenaRenderer(arena);
-    //this.controller = new ArenaMaster(arena);
+    this.renderer   = new Renderer(arena);
     this.runner     = new GameRunner();
   }
 
@@ -58,19 +55,15 @@ public class GameEngine {
   }
 
   public void slide(int x, int y) {
-    System.out.println("Old X: "+this.x+", Old Y: "+this.y+", New X: "+x+", New Y: "+y);
     this.arena.clear();
-    if (this.arena.swap(this.x, this.y, x, y)) {
-      System.out.println("WILL SWAP!");
-    } else {
-      System.out.println("NO swap for you!"); 
-    }
+    this.arena.takeTurn(this.x, this.y, x, y);
   }
 
   public void select(int x, int y) {
     this.x = x;
     this.y = y;
     this.arena.clear();
+    this.arena.takeTurn(x, y);
     if (x < 32 && y < 32) {
       arena.printActor(x, y);
       System.out.println(arena.toString());

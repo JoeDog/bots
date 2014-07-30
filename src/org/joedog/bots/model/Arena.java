@@ -6,6 +6,7 @@ import java.util.List;
 import java.awt.Point;
 import java.lang.Thread;
 
+import org.joedog.bots.view.*;
 import org.joedog.bots.actor.*;
 import org.joedog.bots.model.Location;
 import org.joedog.util.RandomUtils;
@@ -15,19 +16,21 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
   public static final  int VERTICAL   = 0;
   public static final  int HORIZONTAL = 1;
 
-  private Bully  bully             = null;
-  private static Arena INSTANCE    = new Arena();
-  private static final Object lock = new Object();
-  private ActorFactory factory     = new ActorFactoryImpl();
-  private static List<Actor> scene; // = Collections.synchronizedList(new ArrayList<Actor>());
-  private int   cols;
-  private int   rows;
-  private int   cellsize;
-  private int   width;
-  private int   height;
-  private int   turns = 5;
-  private Point p1 = new Point(); // 0,0
-  private Point p2 = new Point(); // 0,0
+  private Bully  bully              = null;
+  private static Arena INSTANCE     = new Arena();
+  private static Renderer view      = null;
+  private static final Object lock  = new Object();
+  private ActorFactory factory      = new ActorFactoryImpl();
+  private static List<Actor> scene; 
+  private static List<Shape> shapes;
+  private int    cols;
+  private int    rows;
+  private int    cellsize;
+  private int    width;
+  private int    height;
+  private int    turns = 25;
+  private Point  p1 = new Point(); // 0,0
+  private Point  p2 = new Point(); // 0,0
   private ArenaRunner runner;
   private boolean     running = true;
   private boolean     ready   = false;
@@ -45,6 +48,9 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     this.rows     = this.height / this.cellsize;
     if (this.scene == null) {
       this.scene  = Collections.synchronizedList(new ArrayList<Actor>());
+    }
+    if (this.shapes == null) {
+      this.shapes = Collections.synchronizedList(new ArrayList<Shape>());
     }
     this.createScene();
     synchronized (scene) {
@@ -64,14 +70,6 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     return this.ready;
   }
 
-  public void setTurns(int turns) {
-    this.turns = turns;
-  }
-
-  public int getTurns() {
-    return (this.turns < 1) ? 0 : this.turns; // don't want to send -1
-  }
-
   public static Arena getInstance() {
     if (INSTANCE == null) {
       for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
@@ -89,7 +87,36 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     }
   }
 
-  public boolean swap(int ox, int oy, int nx, int ny) {
+  public boolean takeTurn(int ox, int oy, int nx, int ny) {
+    boolean success = swap(ox, oy, nx, ny);
+    if (success) {
+      this.setTurns(this.getTurns() - 1);
+    }
+    return success;
+  }
+
+  public boolean takeTurn(int x, int y) {
+    for (Shape s : this.shapes) {
+      if (s.contains(x, y)) {
+        s.click();
+      }
+    }
+    return true;
+  } 
+
+  public void setTurns(int turns) {
+    this.turns = turns;
+    if (this.turns < 1) {
+      Shape over = new GameOver(this.getCols()*this.cellsize, this.getRows()*this.cellsize);   
+      this.shapes.add(over);
+    }
+  }
+
+  public int getTurns() {
+    return (this.turns < 1) ? 0 : this.turns; // don't want to send -1
+  }
+
+  private boolean swap(int ox, int oy, int nx, int ny) {
     Location orig = this.getLocation(ox, oy);
     Location dest = this.getLocation(nx, ny);
     Actor    star = this.getActor(orig);
@@ -101,7 +128,6 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
       if (swappable(star.getType(), temp, dir[i])) {
         star.setLocation(dest);
         fill.setLocation(orig);
-        turns--;
         return true;
       }
     } 
@@ -134,7 +160,7 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     return false;
   }
 
-  public boolean swappable(int type, Location next, int heading) {
+  private boolean swappable(int type, Location next, int heading) {
     Actor actor = this.getActor(next);
     int x =  0;
     int t = -1;
@@ -275,6 +301,15 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     ArrayList<Actor> list = new ArrayList<Actor>();
     synchronized (scene) {
       for (Actor a : scene)
+        list.add(a);
+    }
+    return list;
+  }
+
+  public ArrayList<Shape> getShapes() {
+    ArrayList<Shape> list = new ArrayList<Shape>();
+    synchronized (shapes) {
+      for (Shape a : shapes)
         list.add(a);
     }
     return list;
