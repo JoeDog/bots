@@ -71,6 +71,7 @@ public abstract class Shape {
     }
   }
 
-  public abstract void draw(Graphics g);
-  public abstract void click();
+  public abstract void    draw(Graphics g);
+  public abstract void    click();
+  public abstract boolean reclaim();
 }

@@ -2,6 +2,7 @@ package org.joedog.bots.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.awt.Point;
 import java.lang.Thread;
@@ -28,7 +29,7 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
   private int    cellsize;
   private int    width;
   private int    height;
-  private int    turns = 25;
+  private int    turns = 5;
   private Point  p1 = new Point(); // 0,0
   private Point  p2 = new Point(); // 0,0
   private ArenaRunner runner;
@@ -502,6 +503,17 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     } 
   }
 
+  public void reclaim() {
+    synchronized (shapes) {
+      for (Iterator<Shape> iter = shapes.iterator(); iter.hasNext(); ) {
+        Shape shape = iter.next();
+        if (shape.reclaim() == true) {
+          iter.remove();
+        }
+      }
+    }
+  }
+
   public void removeActor(Actor actor) {
     synchronized (scene) {
       this.scene.remove(actor); 
@@ -621,7 +633,8 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
         entrance();
         evaluate();
         act();
-        Sleep.sleep(1);
+        reclaim();
+        Sleep.sleep(30);
       }
     }
   }

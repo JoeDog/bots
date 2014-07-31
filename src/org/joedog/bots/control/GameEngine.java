@@ -133,7 +133,7 @@ public class GameEngine {
          */
         this.over = true;
         try {
-          Sleep.sleep(1);
+          Sleep.sleep(300);
         } catch (Exception e) {}
         break;
     }
@@ -182,7 +182,7 @@ public class GameEngine {
               // It's an interrupted exception, and nobody cares
             }
           }
-          Sleep.sleep(1);
+          Sleep.sleep(30);
           if (isPaused()) x--;
           if (x == 0) break;
         }

@@ -13,10 +13,11 @@ import org.joedog.util.Sleep;
 import org.joedog.util.RandomUtils;
 
 public class GameOver extends Shape {
-  private static int   w = 0;
-  private static int   h = 0;
-  private static boolean clicked      = false;
-  private static final String message = new String("GAME OVER");
+  private static int w = 0;
+  private static int h = 0;
+  private static boolean clicked        = false;
+  private static int     moves          = 6;
+  private static final   String message = new String("GAME OVER");
 
   public GameOver(int x, int y) {
     super(x, y); // midpoint we'll adjust them below
@@ -28,43 +29,46 @@ public class GameOver extends Shape {
       g2.setFont(new Font("Helvetica", Font.BOLD, 24));
       FontMetrics fm = g2.getFontMetrics();
       Rectangle2D r  = fm.getStringBounds(message, g2);
-      this.setX((this.getX() - (int) r.getWidth()) / 2);
-      this.setY((this.getY() - (int) r.getHeight()) / 2 + fm.getAscent());
-      this.setWidth((int)r.getWidth());
-      this.setHeight((int)r.getHeight());
+      this.setX(((this.getX() - (int) r.getWidth()) / 2)-20);
+      this.setY(((this.getY() - (int) r.getHeight()) / 2 + fm.getAscent())-((int)r.getHeight()+14));
+      this.setWidth((int)r.getWidth()+40);
+      this.setHeight((int)r.getHeight()+40);
     }
   }
 
   @Override 
   public void click() {
-    for (int i = 0; i < 5; i++) {
-      this.move(RandomUtils.range(0, 5), RandomUtils.range(0, 5));
-      System.out.println("MOVE!!");
-      Sleep.sleep(1);
-    }
-    System.out.println("CLICKY CLICK!!");
     this.clicked = true; 
+  }
+
+  @Override
+  public boolean reclaim() {
+    return (this.moves < 0);
   }
 
   @Override
   public void draw(Graphics g) {
     if (this.clicked) {
+      this.moveTo(RandomUtils.range(-6, 6), RandomUtils.range(-2, 2));
+      this.moves--; 
+    }
+    if (this.moves < 0) {
       return;
     }
     this.size(g);
     Graphics2D g2  = (Graphics2D) g;
     g2.setFont(new Font("Helvetica", Font.BOLD, 24));
-    System.out.println("GameOver object X: "+this.getX()+", Y: "+this.getY());
     g2.setColor(new Color(194, 194, 194));
     g2.fill(new RoundRectangle2D.Double(
-      this.getX()-20, this.getY()-(this.getHeight()+14), this.getWidth()+40, this.getHeight()+40, 10, 10)
+      this.getX(), this.getY(), this.getWidth(), this.getHeight(), 10, 10)
     );
     g2.setColor(new Color(32, 32, 32));
     g2.draw(new RoundRectangle2D.Double(
-      this.getX()-20, this.getY()-(this.getHeight()+14), this.getWidth()+40, this.getHeight()+40, 10, 10)
+      this.getX(), this.getY(), this.getWidth(), this.getHeight(), 10, 10)
     );
     g.setColor(new Color(42, 67, 58));
-    g2.drawString(message, this.getX(), this.getY());
+    g2.drawString(message, this.getX()+20, this.getY()+42);
+    Sleep.sleep(60);
   }
 }
 
