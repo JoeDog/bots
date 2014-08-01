@@ -44,15 +44,33 @@ public class Renderer {
   }
 
   public void addShape(Shape shape) {
-    System.out.println("Adding a shape!");
     this.shapes.add(shape);
   }
 
   public void removeShape(Shape shape) {
     this.shapes.remove(shape);
   }
-  
+
   public void render(Graphics g) {
+    renderBoard(g);
+    renderDialog(g);
+  }
+
+  public void render(boolean paused, Graphics g) {
+    if (! paused) {
+      renderBoard(g);
+    }
+    renderDialog(g);
+  }
+ 
+  private void renderDialog(Graphics g) {
+    Graphics2D g2 = (Graphics2D) g; 
+    for (Shape s : this.arena.getShapes()) {
+      s.draw(g);
+    }
+  }
+ 
+  private void renderBoard(Graphics g) {
     Graphics2D g2 = (Graphics2D) g; 
 
     // render the grid
@@ -215,25 +233,5 @@ public class Renderer {
     g.clearRect(0, (arena.getRows() * cellSize), arena.getWidth(),  (arena.getRows() * cellSize) + 20);
     g.setFont(new Font("Helvetica", Font.PLAIN, 12));
     g.drawString("Turns: "+arena.getTurns(), 5, (arena.getRows() * cellSize) + 20);
-
-    for (Shape s : this.arena.getShapes()) {
-      s.draw(g);
-    }
-  }
-
-  public void gameOver(Graphics g) {
-    String over    = new String("GAME OVER");
-    Graphics2D g2  = (Graphics2D) g;
-    g2.setFont(new Font("Helvetica", Font.BOLD, 24));
-    FontMetrics fm = g2.getFontMetrics();
-    Rectangle2D r  = fm.getStringBounds(over, g2);
-    int x = ((arena.getCols()*cellSize) - (int) r.getWidth()) / 2;
-    int y = ((arena.getRows()*cellSize) - (int) r.getHeight()) / 2 + fm.getAscent();
-    g2.setColor(new Color(194, 194, 194));
-    g2.fill(new RoundRectangle2D.Double(x-20, y-(r.getHeight()+14), r.getWidth()+40, r.getHeight()+40, 10, 10));
-    g2.setColor(new Color(32, 32, 32));
-    g2.draw(new RoundRectangle2D.Double(x-20, y-(r.getHeight()+14), r.getWidth()+40, r.getHeight()+40, 10, 10));
-    g.setColor(new Color(42, 67, 58));
-    g2.drawString(over, x, y);
   }
 }
