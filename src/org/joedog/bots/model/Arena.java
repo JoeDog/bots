@@ -29,7 +29,7 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
   private int    cellsize;
   private int    width;
   private int    height;
-  private int    turns = 5;
+  private int    turns = 25;
   private Point  p1 = new Point(); // 0,0
   private Point  p2 = new Point(); // 0,0
   private ArenaRunner runner;
@@ -634,7 +634,7 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
         evaluate();
         act();
         reclaim();
-        Sleep.sleep(30);
+        Sleep.milliseconds(30);
       }
     }
   }
