@@ -16,7 +16,8 @@ public class GameOver extends Shape {
   private static int w = 0;
   private static int h = 0;
   private static boolean clicked        = false;
-  private static int     moves          = 6;
+  private static int     moves          = 66;
+  private static int     wobble         = (moves - 6);
   private static final   String message = new String("GAME OVER");
 
   public GameOver(int x, int y) {
@@ -48,8 +49,12 @@ public class GameOver extends Shape {
 
   @Override
   public void draw(Graphics g) {
-    if (this.clicked) {
-      this.moveTo(RandomUtils.range(-6, 6), RandomUtils.range(-2, 2));
+    if (this.clicked && this.moves >= this.wobble) {
+      this.moveTo(RandomUtils.range(-8, 8), RandomUtils.range(-1, 1));
+      this.moves--; 
+    }
+    if (this.clicked && (this.moves >= 0 && this.moves < this.wobble)) {
+      this.moveTo(0, -8);
       this.moves--; 
     }
     if (this.moves < 0) {
@@ -68,7 +73,7 @@ public class GameOver extends Shape {
     );
     g.setColor(new Color(42, 67, 58));
     g2.drawString(message, this.getX()+20, this.getY()+42);
-    Sleep.sleep(60);
+    Sleep.milliseconds(30);
   }
 }
 
