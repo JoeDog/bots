@@ -22,19 +22,17 @@ public class Game {
   public synchronized void start() {
     int status = GameEngine.START;
 
-    while (control.isPaused()) {
-      try {
-        Thread.sleep(500);
-      } catch (Exception e) {}
+    while (control.paused()) {
+      Sleep.milliseconds(500);
     }
 
     while (status != GameEngine.DONE) {
-      status = control.gameStatus();
+      status = control.status();
       switch (status) {
         case GameEngine.START:
+          control.start();
           break;
         case GameEngine.PLAY:
-          control.start();
           break;
         case GameEngine.OVER:
           //control.pause();
@@ -44,6 +42,7 @@ public class Game {
         case GameEngine.DONE:
           break;
       }
+      Sleep.milliseconds(20);
     } 
   }
 }

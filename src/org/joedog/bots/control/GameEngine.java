@@ -32,22 +32,25 @@ public class GameEngine {
   private Graphics    g = null;
   private int x = 0;
   private int y = 0;
-  private int status = START;
-  private AtomicBoolean hiatus = new AtomicBoolean(false);
-  private boolean    over      = false; // XXX: should check life count
-  private boolean    running;
-  private GameRunner runner;
+  private int status  = START;
+  private AtomicBoolean hiatus   = new AtomicBoolean(false);
+  private AtomicBoolean pause    = new AtomicBoolean(false);
+  private boolean       over     = false; // XXX: should check life count
+  private GameRenderer  engine;
 
   public GameEngine(Canvas view) {
     this.view       = view;
     this.arena      = Arena.getInstance();
     this.renderer   = new Renderer(arena);
-    this.runner     = new GameRunner();
+    this.engine     = new GameRenderer();
   }
 
   public void start() {
-    this.running    = true;
-    this.runner.start();
+    this.engine.start();
+  }
+
+  public void stop() {
+    this.engine.stop();
   }
 
   public void clear() {
@@ -92,24 +95,29 @@ public class GameEngine {
     }
   }
 
-  public void render(Graphics g) {
+  /**
+   * Renders the game board; if paused, then it 
+   * won't render the game board; it just does 
+   * dialogs
+   */
+  public void render(boolean paused, Graphics g) {
     this.setGraphics(g);
-    renderer.render(g);
+    renderer.render(paused, g);
   }
 
-  public synchronized void pause() {
+  public void pause() {
     hiatus.set(true);
   }
-
-  public synchronized void pause(boolean b) {
-    hiatus.set(b);
+  
+  public void resume() {
+    hiatus.set(false);
   }
 
-  public synchronized boolean isPaused() {
+  public boolean paused() {
     return hiatus.get();
   }
 
-  public synchronized int gameStatus () {
+  public synchronized int status () {
     switch (this.status) {
       case START:
         if (arena.isReady()) 
@@ -133,7 +141,7 @@ public class GameEngine {
          */
         this.over = true;
         try {
-          Sleep.sleep(300);
+          Sleep.milliseconds(300);
         } catch (Exception e) {}
         break;
     }
@@ -141,31 +149,40 @@ public class GameEngine {
   }
 
 
-  private class GameRunner extends Thread {
-    BufferedImage screen = new BufferedImage(Config.WIDTH, Config.HEIGHT+50, BufferedImage.TYPE_INT_RGB);
-    Graphics graphics    = screen.getGraphics();
-    Graphics display     = getGraphics();
+  private class GameRenderer implements Runnable {
+    private Thread  thread;
+    private boolean running = false;
+    BufferedImage screen    = new BufferedImage(Config.WIDTH, Config.HEIGHT+50, BufferedImage.TYPE_INT_RGB);
+    Graphics graphics       = screen.getGraphics();
+    Graphics display        = getGraphics();
+
+    public void start() {
+      if (!running) {
+         System.out.println("starting..."+this.running);
+         this.running = true;
+         thread = new Thread(this);
+         thread.start();
+      }
+    }
+
+    public void stop() {
+      System.out.println("stopping...");
+      thread.interrupt();
+      running = false;
+    }
 
     public void run() {
       while (running) {
-        view.requestFocus();
-
-        while (isPaused()) {
-          try {
-            Thread.sleep(500);
-          } catch (Exception e) {}
-        }
-
         long delta = 0l;
 
-        int x = 5;
+        view.requestFocus();
         while (true) {
           long lastTime = System.nanoTime();
           graphics.setColor(new Color(205, 201, 201));
           graphics.fillRect(0, 0, Config.WIDTH, Config.HEIGHT);
 
           update((float)(delta / 1000000000.0));
-          render(graphics);
+          render(paused(), graphics);
 
           if (screen != null) {
             if (display != null) {
@@ -176,15 +193,8 @@ public class GameEngine {
           }
           delta = System.nanoTime() - lastTime;
           if (delta < 20000000L) {
-            try {
-              Thread.sleep((20000000L - delta) / 1000000L);
-            } catch (Exception e) {
-              // It's an interrupted exception, and nobody cares
-            }
+            Sleep.milliseconds((20000000L - delta) / 1000000L);
           }
-          Sleep.sleep(30);
-          if (isPaused()) x--;
-          if (x == 0) break;
         }
       }
     }
