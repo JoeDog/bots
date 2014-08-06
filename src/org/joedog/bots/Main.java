@@ -17,7 +17,9 @@ import org.joedog.bots.control.Game;
 import org.joedog.bots.control.GameEngine;
 import org.joedog.bots.control.GameThread;
 import org.joedog.bots.model.Config;
+import org.joedog.bots.model.Arena;
 import org.joedog.bots.model.Location;
+import org.joedog.bots.view.GameBoard;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -30,20 +32,21 @@ import javax.swing.WindowConstants;
 
 public class Main extends JPanel implements MouseListener {
   private static final long serialVersionUID = -2666347118493388423L;
-  private static GameEngine engine = null;
-  private static Canvas     canvas = null;
+  private static Arena      model   = null;
+  private static GameBoard  view    = null;
+  private static GameEngine control = null;
 
-  public Main(Canvas canvas) {   
+  public Main(GameBoard panel) {   
     super(new BorderLayout());
-    canvas.addMouseListener(this);
+    panel.addMouseListener(this);
     this.addMouseListener(this);
   }
 
-  private static void createAndShowGui(Canvas canvas) {
+  private static void createAndShowGui(GameBoard view) {
     final JFrame frame = new JFrame("Bully And The Bots");
-    JComponent   panel = new Main(canvas);
-    panel.add(canvas, BorderLayout.CENTER);
-    canvas.setFocusable(true);
+    JComponent   panel = new Main(view);
+    panel.add(view, BorderLayout.CENTER);
+    view.setFocusable(true);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.setContentPane(panel); 
     frame.setPreferredSize(new Dimension(Config.WIDTH+20, Config.HEIGHT+94));
@@ -57,12 +60,12 @@ public class Main extends JPanel implements MouseListener {
   public void mousePressed(MouseEvent e){
     int x = e.getX();
     int y = e.getY();
-    engine.select(x, y);
+    control.select(x, y);
   }
   public void mouseReleased(MouseEvent e){
     int x = e.getX();
     int y = e.getY();
-    engine.slide(x, y);
+    control.slide(x, y);
   }
   public void mouseClicked(MouseEvent e) {} 
   public void mouseEntered(MouseEvent e) {}
@@ -80,12 +83,16 @@ public class Main extends JPanel implements MouseListener {
   }
 
   public static void main(String[] args) {
-    if (canvas == null) {
-      canvas = new Canvas();
+    if (model == null) {
+      model = Arena.getInstance();
     }
 
-    if (engine == null) {
-      engine = new GameEngine(canvas);
+    if (view == null) {
+      view = new GameBoard(model);
+    }
+
+    if (control == null) {
+      control = new GameEngine(model, view);
     }
 
     try {
@@ -105,12 +112,12 @@ public class Main extends JPanel implements MouseListener {
 
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        createAndShowGui(canvas);
+        createAndShowGui(view);
       }
     });
 
     while (true) {
-      Game game = new Game(engine);
+      Game game = new Game(control);
       GameThread thread = new GameThread(game);
       thread.start();
       while (thread.isAlive()) ;
