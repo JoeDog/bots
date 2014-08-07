@@ -11,7 +11,6 @@ import org.joedog.bots.model.Arena;
 import org.joedog.bots.model.Config;
 import org.joedog.bots.model.Location;
 import org.joedog.bots.actor.Bully;
-import org.joedog.bots.view.Renderer;
 import org.joedog.bots.view.GameBoard;
 import org.joedog.util.Sleep;
 
@@ -27,7 +26,6 @@ public class GameEngine {
   private Thread      thread;
   private GameBoard   view;
   private Arena       arena;
-  private Renderer    renderer;
   private int status  = START;
   private AtomicBoolean hiatus   = new AtomicBoolean(false);
   private AtomicBoolean pause    = new AtomicBoolean(false);
@@ -61,7 +59,6 @@ public class GameEngine {
     this.x = x;
     this.y = y;
     this.arena.clear();
-    this.arena.takeTurn(x, y);
     if (x < 32 && y < 32) {
       arena.printActor(x, y);
       System.out.println(arena.toString());

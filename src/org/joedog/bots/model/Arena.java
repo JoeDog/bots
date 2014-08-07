@@ -19,17 +19,15 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
 
   private Bully  bully              = null;
   private static Arena INSTANCE     = new Arena();
-  private static Renderer view      = null;
   private static final Object lock  = new Object();
   private ActorFactory factory      = new ActorFactoryImpl();
   private static List<Actor> scene; 
-  private static List<Shape> shapes;
   private int    cols;
   private int    rows;
   private int    cellsize;
   private int    width;
   private int    height;
-  private int    turns = 25;
+  private int    turns = 5;
   private Point  p1 = new Point(); // 0,0
   private Point  p2 = new Point(); // 0,0
   private ArenaRunner runner;
@@ -49,9 +47,6 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     this.rows     = this.height / this.cellsize;
     if (this.scene == null) {
       this.scene  = Collections.synchronizedList(new ArrayList<Actor>());
-    }
-    if (this.shapes == null) {
-      this.shapes = Collections.synchronizedList(new ArrayList<Shape>());
     }
     this.createScene();
     synchronized (scene) {
@@ -96,21 +91,8 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     return success;
   }
 
-  public boolean takeTurn(int x, int y) {
-    for (Shape s : this.shapes) {
-      if (s.contains(x, y)) {
-        s.click();
-      }
-    }
-    return true;
-  } 
-
   public void setTurns(int turns) {
     this.turns = turns;
-    if (this.turns < 1) {
-      Shape over = new GameOver(this.getCols()*this.cellsize, this.getRows()*this.cellsize);   
-      this.shapes.add(over);
-    }
   }
 
   public int getTurns() {
@@ -307,15 +289,6 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     return list;
   }
 
-  public ArrayList<Shape> getShapes() {
-    ArrayList<Shape> list = new ArrayList<Shape>();
-    synchronized (shapes) {
-      for (Shape a : shapes)
-        list.add(a);
-    }
-    return list;
-  }
-
   public ArrayList<Actor> getActors(Class clazz) {
     ArrayList<Actor> list = new ArrayList<Actor>();
     synchronized (scene) {
@@ -503,6 +476,8 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     } 
   }
 
+  /** 
+   * Keep for iterator reference 
   public void reclaim() {
     synchronized (shapes) {
       for (Iterator<Shape> iter = shapes.iterator(); iter.hasNext(); ) {
@@ -513,6 +488,7 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
       }
     }
   }
+  */
 
   public void removeActor(Actor actor) {
     synchronized (scene) {
@@ -633,7 +609,6 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
         entrance();
         evaluate();
         act();
-        reclaim();
         Sleep.milliseconds(30);
       }
     }

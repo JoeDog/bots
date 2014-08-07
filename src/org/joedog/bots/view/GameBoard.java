@@ -1,6 +1,7 @@
 package org.joedog.bots.view;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.BasicStroke;
@@ -26,6 +27,7 @@ import org.joedog.bots.actor.Enemy;
 import org.joedog.bots.actor.Beddy;
 import org.joedog.bots.actor.Leash;
 import org.joedog.bots.actor.Treat;
+import org.joedog.bots.view.dialog.*;
 
 public class GameBoard extends JDesktopPane {
   private Arena   arena;
@@ -48,7 +50,7 @@ public class GameBoard extends JDesktopPane {
     this.width    = arena.getCols()*cellsize;
     this.height   = (arena.getRows()*cellsize)+50;
   }
-  
+
   @Override
   public void paintComponent(Graphics g) {
     BufferedImage screen = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_RGB);
@@ -218,11 +220,14 @@ public class GameBoard extends JDesktopPane {
     g2.setFont(new Font("Helvetica", Font.PLAIN, 12));
     g2.drawString("Turns: "+arena.getTurns(), 5, (arena.getRows() * cellsize) + 20);
 
-    if (arena.getTurns() == 0) {
-      //g.setFont(new Font("Helvetica", Font.BOLD, 24));
-      //g.drawString("GAME OVER", 5, (arena.getRows() / cellsize) + 20);
-      //gameOver(g);
-    }
     g.drawImage(screen, 0, 0, null);
+
+    if (arena.getTurns() == 0) {
+      Retry r = Retry.getInstance();
+      r.display(this.getWidth(), this.getHeight());      
+      if (this.getIndexOf(r) < 0) {
+        this.add(r);
+      }
+    }
   }
 }
