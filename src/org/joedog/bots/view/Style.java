@@ -45,9 +45,9 @@ public final class Style {
     g2.setFont(new Font("Helvetica", Font.BOLD, 24));
     FontMetrics fm = g2.getFontMetrics();
     Rectangle2D r  = fm.getStringBounds(message, g2);
-    int x = (w - ((int)r.getWidth()) / 2); 
-    int y = (h - ((int)r.getHeight()) / 2) - (int)(h/10);
-    System.out.println("X: "+x+" Y: "+y+" W: "+w+" H: "+h); 
+    int x = ((w - ((int)r.getWidth())) / 2); 
+    int y = ((h - ((int)r.getHeight())) / 2) - (int)(h/10);
+    System.out.println("X: "+x+" Y: "+y+" W: "+w+" H: "+h+" w: "+(int)r.getWidth()+" h: "+r.getHeight()); 
     g2.drawString(message, x, y);
   }
 }

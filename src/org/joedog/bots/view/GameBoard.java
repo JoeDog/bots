@@ -14,6 +14,7 @@ import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import javax.swing.JPanel;
 import javax.swing.JDesktopPane;
+import javax.swing.SwingUtilities;
 
 import org.joedog.bots.model.Arena;
 import org.joedog.bots.model.Location;
@@ -223,11 +224,17 @@ public class GameBoard extends JDesktopPane {
     g.drawImage(screen, 0, 0, null);
 
     if (arena.getTurns() == 0) {
-      Retry r = Retry.getInstance();
-      r.display(this.getWidth(), this.getHeight());      
-      if (this.getIndexOf(r) < 0) {
-        this.add(r);
-      }
+      SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          Retry r = new Retry("GAME OVER");
+          if (getIndexOf(r) < 0) {
+            add(r);
+            r.display(getWidth(), getHeight());      
+          } 
+        }
+      });
+      //Dialog r = new Retry("GAME OVER");
+      //String s = (String)r.display(this.getWidth(), this.getHeight());
     }
   }
 }
