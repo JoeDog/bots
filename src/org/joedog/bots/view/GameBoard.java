@@ -13,6 +13,8 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import javax.swing.JPanel;
+import javax.swing.JOptionPane;
+import javax.swing.JInternalFrame;
 import javax.swing.JDesktopPane;
 import javax.swing.SwingUtilities;
 
@@ -29,6 +31,7 @@ import org.joedog.bots.actor.Beddy;
 import org.joedog.bots.actor.Leash;
 import org.joedog.bots.actor.Treat;
 import org.joedog.bots.view.dialog.*;
+import org.joedog.util.Sleep;
 
 public class GameBoard extends JDesktopPane {
   private Arena   arena;
@@ -50,6 +53,14 @@ public class GameBoard extends JDesktopPane {
     this.tColor   = new Color(128, 144, 128);
     this.width    = arena.getCols()*cellsize;
     this.height   = (arena.getRows()*cellsize)+50;
+  }
+
+  public String over() {
+    InternalDialog dialog = new InternalDialog("GAME OVER");
+    this.add(dialog);
+    dialog.setVisible(true);
+    String res = (String)dialog.display(this.getWidth(), this.getHeight());
+    return res; 
   }
 
   @Override
@@ -222,19 +233,5 @@ public class GameBoard extends JDesktopPane {
     g2.drawString("Turns: "+arena.getTurns(), 5, (arena.getRows() * cellsize) + 20);
 
     g.drawImage(screen, 0, 0, null);
-
-    if (arena.getTurns() == 0) {
-      SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          Retry r = new Retry("GAME OVER");
-          if (getIndexOf(r) < 0) {
-            add(r);
-            r.display(getWidth(), getHeight());      
-          } 
-        }
-      });
-      //Dialog r = new Retry("GAME OVER");
-      //String s = (String)r.display(this.getWidth(), this.getHeight());
-    }
   }
 }

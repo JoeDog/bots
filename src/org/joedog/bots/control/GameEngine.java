@@ -142,7 +142,11 @@ public class GameEngine {
           long lastTime = System.nanoTime();
 
           update((float)(delta / 1000000000.0));
-          view.repaint();
+          if (arena.getTurns() < 1) {
+            view.over();
+          } else {
+            view.repaint();
+          }
           delta = System.nanoTime() - lastTime;
           if (delta < 20000000L) {
             Sleep.milliseconds((20000000L - delta) / 1000000L);

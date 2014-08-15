@@ -1,5 +1,6 @@
 package org.joedog.bots.view.dialog;
 
+import java.awt.ActiveEvent;
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -24,6 +25,7 @@ import javax.swing.JRootPane;
 import javax.swing.SwingUtilities;
 
 import org.joedog.bots.view.Style;
+import org.joedog.util.Sleep;
 
 public class InternalDialog extends JInternalFrame /*implements Dialog*/ {
   public final static String CLOSED = "CLOSED";
@@ -118,8 +120,7 @@ public class InternalDialog extends JInternalFrame /*implements Dialog*/ {
     this.setSize(this.width, this.height);
     this.setLocation((dim.width - this.width)/2, ((dim.height - this.height)/2)-(int)(this.height/3));
     this.setVisible(true);
-    System.out.println("GOING MODAL!");
-    //startModal();
+    startModal();
     return this.value;
   }
 
@@ -158,42 +159,45 @@ public class InternalDialog extends JInternalFrame /*implements Dialog*/ {
   /**
    * see: http://www.javakey.net/4-java-gui/686df4a3d194cade.htm
    */
-  private void startModal() {
-    synchronized (this) {
-      if (this.isVisible() && !this.isShowing()) {
-        Container parent = this.getParent();
-        while (parent != null) {
-          if (parent.isVisible() == false) {
-            parent.setVisible(true);
+  private synchronized void startModal() {
+    /*
+    if (this.isVisible() && !this.isShowing()) {
+      Container parent = this.getParent();
+      while (parent != null) {
+        if (parent.isVisible() == false) {
+          parent.setVisible(true);
+        }
+        parent = parent.getParent();
+      }
+    } */
+    try {
+      if (SwingUtilities.isEventDispatchThread()) {
+        EventQueue theQueue = getToolkit().getSystemEventQueue();
+        while (this.isVisible()) {
+          /*AWTEvent event  = theQueue.getNextEvent();
+          Object   source = event.getSource();
+          if (event instanceof ActiveEvent) {
+            System.out.println("ActiveEvent!");
+            ((ActiveEvent) event).dispatch();
+          } else if (source instanceof Component) {
+            System.out.println("COMPONENT!!!!");
+            ((Component) source).dispatchEvent(event);
+          } else if (source instanceof MenuComponent) {
+            ((MenuComponent) source).dispatchEvent(event);
+          } else {
+            System.err.println("Unable to dispatch: " + event);
           }
-          parent = parent.getParent();
+          */
+          System.out.println("the way ay ting is the hardest part..."); 
+          Sleep.milliseconds(300);
+        }
+      } else {
+        while (this.isVisible()) {
+          System.out.println("waiting on a friend....");
+          wait();
         }
       }
-      try {
-        if (SwingUtilities.isEventDispatchThread()) {
-          EventQueue theQueue = getToolkit().getSystemEventQueue();
-          System.out.println("IS EVENT DISPATCH");
-          while (isVisible()) {
-            AWTEvent event = theQueue.getNextEvent();
-            Object src = event.getSource();
-            if (src instanceof Component) {
-              ((Component)src).dispatchEvent(event);
-            } else if (src instanceof MenuComponent) {
-              ((MenuComponent)src).dispatchEvent(event);
-            } else {
-              System.err.println("ERROR: unable to dispatch: "+event);
-            }
-            System.out.println("the way ay ting is the hardest part..."); 
-            //wait();
-          }
-        } else {
-          while (isVisible()) {
-            System.out.println("waiting on a friend....");
-            wait();
-          }
-        }
-      } catch(InterruptedException e) {e.printStackTrace();}
-    }
+    } catch(InterruptedException e) {e.printStackTrace();}
   }
 
   private void stopModal() {
