@@ -114,6 +114,10 @@ public class GameEngine {
     return this.status;
   }
 
+  public synchronized void setStatus(int status) {
+    this.status = status;
+  }
+
 
   private class GameRenderer implements Runnable {
     private Thread  thread;
@@ -143,7 +147,12 @@ public class GameEngine {
 
           update((float)(delta / 1000000000.0));
           if (arena.getTurns() < 1) {
-            view.over();
+            String res = view.over();
+            System.out.println("RESULT: "+res);
+            if (res.equals("OKAY")) {
+              arena.reset();
+              setStatus(START);
+            }
           } else {
             view.repaint();
           }

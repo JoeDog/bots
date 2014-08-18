@@ -62,6 +62,18 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     this.runner.start();
   }
 
+  public synchronized void reset() {
+    this.removeAll();
+    this.createScene();
+    synchronized (scene) {
+      this.scene.remove(this.getActor(new Location(5, 15)));
+      this.bully.setStartingLocation(5, 15);
+      this.addActor(this.bully, bully.getLocation());
+      this.bully.setArena(this);
+    }
+    this.turns = 5;
+  }
+
   public boolean isReady() {
     return this.ready;
   }
@@ -489,6 +501,15 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     }
   }
   */
+
+  public void removeAll() {
+    for (int x = 0; x < this.rows; x++) {
+      for (int y = 0; y < this.cols; y++) {
+        Actor actor = this.getActor(new Location(y, x));
+        removeActor(actor);
+      } 
+    }
+  }
 
   public void removeActor(Actor actor) {
     synchronized (scene) {

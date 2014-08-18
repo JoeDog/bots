@@ -20,6 +20,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyVetoException;
 import javax.swing.JButton;
 import javax.swing.JInternalFrame;
+import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.SwingUtilities;
@@ -38,8 +39,8 @@ public class InternalDialog extends JInternalFrame /*implements Dialog*/ {
   protected Object value              = OKAY;
   public    JButton okayButton   = new JButton("OKAY");
   public    JButton cancelButton = new JButton("Cancel");
-  private   JPanel  buttonPanel  = new JPanel();
-
+  private   DPanel  dialogPanel; // = new DPanel();
+  private   JPanel  buttonPanel; 
 
   public InternalDialog (String message) {
     super (
@@ -60,7 +61,6 @@ public class InternalDialog extends JInternalFrame /*implements Dialog*/ {
       }
     });
     build(message, new JButton[] {okayButton, cancelButton});
-    //buttonPanel.setLayout(new FlowLayout());
   }
 
   public InternalDialog(String message, JButton[] buttons) {
@@ -75,16 +75,35 @@ public class InternalDialog extends JInternalFrame /*implements Dialog*/ {
   }
 
   private void build(String message, JButton[] buttons) {
+    this.setLayer(JLayeredPane.MODAL_LAYER);
+    this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+    this.setOpaque(false);
     this.message = message;
-    System.out.println("BUILDING: "+message);
     this.putClientProperty("JInternalFrame.isPalette", Boolean.TRUE);
     this.getRootPane().setWindowDecorationStyle(JRootPane.NONE);
     ((javax.swing.plaf.basic.BasicInternalFrameUI)this.getUI()).setNorthPane(null);
-    this.setLayout(new BorderLayout());
-    buttonPanel.setLayout(new FlowLayout());
-    this.add(buttonPanel, BorderLayout.SOUTH);
+    this.dialogPanel = new DPanel();
+    this.getContentPane().add(dialogPanel, BorderLayout.CENTER);
+    this.addButtons(buttons);
+  }
+
+  public void addButtons(JButton buttons[]) {
+    if (buttonPanel != null)
+      this.dialogPanel.remove(buttonPanel);
+    buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10)) {
+      @Override
+      public void paintComponent(Graphics g) { 
+        if (g instanceof Graphics2D) {
+          Graphics2D g2 = (Graphics2D) g;
+          g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        } else {
+          super.paint(g);
+        }
+      }
+    };
+    this.dialogPanel.add(buttonPanel, BorderLayout.SOUTH);
     for (int i = 0; i < buttons.length; i++) {
-      buttonPanel.add(buttons[i]);
+       buttonPanel.add(buttons[i]);
     }
   }
 
@@ -119,7 +138,9 @@ public class InternalDialog extends JInternalFrame /*implements Dialog*/ {
     });
     this.setSize(this.width, this.height);
     this.setLocation((dim.width - this.width)/2, ((dim.height - this.height)/2)-(int)(this.height/3));
+    System.out.println("Add buttons");
     this.setVisible(true);
+    this.validate();
     startModal();
     return this.value;
   }
@@ -142,25 +163,20 @@ public class InternalDialog extends JInternalFrame /*implements Dialog*/ {
     } catch (PropertyVetoException pve) {}
   }
 
-
   @Override
-  public void paint(Graphics g) {
+  public void paintComponent(Graphics g) {
     if (g instanceof Graphics2D) {
       Graphics2D g2 = (Graphics2D) g;
       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-      Style.dialogWindow(g2, 0, 0, this.width, this.height);
-      Style.dialogMessage(g2, "GAME OVER", this.width, this.height);
     } else {
       super.paint(g);
     }
-  }
+  } 
 
   /**
    * see: http://www.javakey.net/4-java-gui/686df4a3d194cade.htm
    */
   private synchronized void startModal() {
-    /*
     if (this.isVisible() && !this.isShowing()) {
       Container parent = this.getParent();
       while (parent != null) {
@@ -169,12 +185,12 @@ public class InternalDialog extends JInternalFrame /*implements Dialog*/ {
         }
         parent = parent.getParent();
       }
-    } */
+    } 
     try {
       if (SwingUtilities.isEventDispatchThread()) {
         EventQueue theQueue = getToolkit().getSystemEventQueue();
         while (this.isVisible()) {
-          /*AWTEvent event  = theQueue.getNextEvent();
+          AWTEvent event  = theQueue.getNextEvent();
           Object   source = event.getSource();
           if (event instanceof ActiveEvent) {
             System.out.println("ActiveEvent!");
@@ -187,13 +203,9 @@ public class InternalDialog extends JInternalFrame /*implements Dialog*/ {
           } else {
             System.err.println("Unable to dispatch: " + event);
           }
-          */
-          System.out.println("the way ay ting is the hardest part..."); 
-          Sleep.milliseconds(300);
         }
       } else {
         while (this.isVisible()) {
-          System.out.println("waiting on a friend....");
           wait();
         }
       }
@@ -205,5 +217,23 @@ public class InternalDialog extends JInternalFrame /*implements Dialog*/ {
     synchronized(this) {
       notifyAll();
     }
+  }
+
+  private class DPanel extends JPanel {
+    DPanel() {
+      this.setLayout(new BorderLayout());
+      this.setOpaque(false);
+    }
+    
+    public void paintComponent(Graphics g) {
+      if (g instanceof Graphics2D) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        Style.dialogWindow(g2, 0, 0, this.getWidth(), this.getHeight());
+        Style.dialogMessage(g2, "GAME OVER", this.getWidth(), this.getHeight());
+      } else {
+        super.paintComponent(g);
+      }
+    } 
   }
 } 
