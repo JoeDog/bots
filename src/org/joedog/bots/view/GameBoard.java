@@ -39,7 +39,8 @@ public class GameBoard extends JDesktopPane {
   private Color   cColor;
   private Color   tColor;
   private Color   eColor;
-  private int     cellsize = 32;    // XXX: HARDCODED!!!
+  private int     cellsize = 32; // XXX: HARDCODED!!!
+  private int     pad      = (this.cellsize/2);
   private int     width;
   private int     height;
   private boolean workmode = false;
@@ -56,6 +57,7 @@ public class GameBoard extends JDesktopPane {
   }
 
   public String over() {
+    this.repaint();
     InternalDialog dialog = new InternalDialog("GAME OVER");
     this.add(dialog);
     dialog.setVisible(true);
@@ -68,10 +70,18 @@ public class GameBoard extends JDesktopPane {
     BufferedImage screen = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_RGB);
     Graphics2D g2 = (Graphics2D) screen.getGraphics(); 
 
+    renderBoard(g2);
+    if (arena.getTurns() != 0) 
+      renderActors(g2);
+    renderBully(g2);
+    renderScore(g2);
+
+    g.drawImage(screen, 0, 0, null);
+  }
+
+  private void renderBoard(Graphics2D g2) {
     g2.setColor(new Color(205, 201, 201));
     g2.fillRect(0, 0, this.width, this.height);
-
-    int pad      = (this.cellsize/2);
 
     g2.setFont(new Font("Helvetica", Font.PLAIN, 18));
 
@@ -82,8 +92,8 @@ public class GameBoard extends JDesktopPane {
     for (int i = 0; i <= arena.getRows(); i++) {
       g2.drawLine(0, i * cellsize, arena.getRows() * cellsize, i * cellsize);
     }
-    
-    // render the blocks 
+
+    // render the blocks
     g2.setColor(this.bColor);
     for (Actor actor : arena.getActors(Block.class)) {
       int x = (int) (actor.getX() * cellsize) + 2;
@@ -94,8 +104,9 @@ public class GameBoard extends JDesktopPane {
         g2.fillRect(x, y, cellsize - 4, cellsize - 4);
       }
     }
+  }
 
-    // render the blanks
+  private void renderActors(Graphics2D g2) {
     g2.setColor(Color.red);
     g2.setColor(this.bColor);
     for (Actor actor : arena.getActors(Blank.class)) {
@@ -123,8 +134,8 @@ public class GameBoard extends JDesktopPane {
         g2.fillOval(x+cellsize-12, y+15, 8, 8);
       }
     }
-    
-    // render the chewies 
+
+    // render the chewies
     g2.setColor(this.cColor);
     for (Actor actor : arena.getActors(Chewy.class)) {
       int x      = ((int)actor.getX() * cellsize) + 2;
@@ -149,8 +160,8 @@ public class GameBoard extends JDesktopPane {
         g2.fillOval(x + 2, y + 2, cellsize - 4, cellsize - 4);
       }
     }
-
-    // render Beddy 
+ 
+    // render Beddy
     g2.setColor(new Color(128,128,144));
     for (Actor actor : arena.getActors(Beddy.class)) {
       int x = (int) (actor.getX() * cellsize);
@@ -161,7 +172,7 @@ public class GameBoard extends JDesktopPane {
         g2.fillOval(x + 2, y + 10, cellsize - 4, cellsize - 14);
       }
     }
-     
+
     // render Leash
     g2.setColor(new Color(128,128,144));
     g2.setStroke(new BasicStroke(4));
@@ -177,7 +188,7 @@ public class GameBoard extends JDesktopPane {
     g2.setStroke(new BasicStroke(1));
 
     // render Treatie
-    g2.setColor(new Color(205, 186,150)); 
+    g2.setColor(new Color(205, 186,150));
     for (Actor actor : arena.getActors(Treat.class)) {
       int x = (int) (actor.getX() * cellsize);
       int y = (int) (actor.getY() * cellsize);
@@ -187,10 +198,10 @@ public class GameBoard extends JDesktopPane {
         g2.fillOval(x+8, y+6, cellsize-14, cellsize-18);
       }
     }
-    
-    
+  }
+
+  private void renderBully(Graphics2D g2) {
     // render player bully
-    //g.setColor(new Color(0, 1f, 0));
     g2.setColor(new Color(0, 100, 0));
     Bully bully = arena.getBully();
     int x = (int) (bully.getX() * cellsize);
@@ -211,12 +222,14 @@ public class GameBoard extends JDesktopPane {
     // render square on bully
     g2.setColor(new Color(0.7f, 0.5f, 0f));
     g2.fillRect(x + 10, y + 10, cellsize - 20, cellsize - 20);
+  }
 
+  private void highlights(Graphics2D g2) {
     // location highlights
     g2.setColor(Color.red);
     for (Location locale : arena.getLocations()) {
-      x = (int) (locale.getX() * cellsize);
-      y = (int) (locale.getY() * cellsize);
+      int x = (int) (locale.getX() * cellsize);
+      int y = (int) (locale.getY() * cellsize);
       if (locale.isHighlighted()) {
         g2.drawRect(x, y, cellsize, cellsize);
         g2.drawRect(x+1, y+1, cellsize-2, cellsize-2);
@@ -225,13 +238,14 @@ public class GameBoard extends JDesktopPane {
     g2.setStroke(new BasicStroke(6));
     g2.drawLine((int)arena.p1().getX(), (int)arena.p1().getY(), (int)arena.p2().getX(), (int)arena.p2().getY());
     g2.setStroke(new BasicStroke(1));
+  }
 
+  private void renderScore(Graphics2D g2) {
     // score board
     g2.setColor(Color.GREEN);
     g2.clearRect(0, (arena.getRows() * cellsize), arena.getWidth(),  (arena.getRows() * cellsize) + 20);
-    g2.setFont(new Font("Helvetica", Font.PLAIN, 12));
+    g2.setFont(new Font("Monospaced", Font.PLAIN, 12));
     g2.drawString("Turns: "+arena.getTurns(), 5, (arena.getRows() * cellsize) + 20);
-
-    g.drawImage(screen, 0, 0, null);
+    g2.drawString("Lives: "+arena.getLives(), 5, (arena.getRows() * cellsize) + 36);
   }
 }

@@ -28,6 +28,8 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
   private int    width;
   private int    height;
   private int    turns = 5;
+  private int    level = 1;
+  private int    lives = 5;
   private Point  p1 = new Point(); // 0,0
   private Point  p2 = new Point(); // 0,0
   private ArenaRunner runner;
@@ -48,29 +50,21 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     if (this.scene == null) {
       this.scene  = Collections.synchronizedList(new ArrayList<Actor>());
     }
-    this.createScene();
-    synchronized (scene) {
-      this.bully.addActorCollisionListener(this);
-      this.bully.addSceneCollisionListener(this);
-      this.scene.remove(this.getActor(new Location(5, 15)));
-      this.bully.setStartingLocation(5, 15);
-      this.addActor(this.bully, bully.getLocation());
-      this.bully.setArena(this);
-    }
-    this.bully.addCollisionActors(this.getActors());
+    this.reset();
     this.runner = new ArenaRunner();
     this.runner.start();
   }
 
   public synchronized void reset() {
+    this.ready  = false;
+    this.checks = 0;
     this.removeAll();
     this.createScene();
-    synchronized (scene) {
-      this.scene.remove(this.getActor(new Location(5, 15)));
-      this.bully.setStartingLocation(5, 15);
-      this.addActor(this.bully, bully.getLocation());
-      this.bully.setArena(this);
-    }
+    this.scene.remove(this.getActor(new Location(5, 15)));
+    this.bully.setStartingLocation(5, 15);
+    this.addActor(this.bully, bully.getLocation());
+    this.bully.setArena(this);
+    this.bully.addCollisionActors(this.getActors());
     this.turns = 5;
   }
 
@@ -109,6 +103,14 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
 
   public int getTurns() {
     return (this.turns < 1) ? 0 : this.turns; // don't want to send -1
+  }
+
+  public void setLives(int lives) {
+    this.lives = lives;
+  }
+
+  public int getLives() {
+    return (this.lives < 1) ? 0 : this.lives; // don't want to send -1
   }
 
   private boolean swap(int ox, int oy, int nx, int ny) {
@@ -227,7 +229,7 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     }
     // XXX: need a real ready test....
     checks++;
-    if (checks >= 100) this.ready = true;
+    if (checks >= 120) this.ready = true;
   }
 
   public void clear() {

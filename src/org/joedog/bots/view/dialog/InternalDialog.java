@@ -81,10 +81,13 @@ public class InternalDialog extends JInternalFrame /*implements Dialog*/ {
     this.message = message;
     this.putClientProperty("JInternalFrame.isPalette", Boolean.TRUE);
     this.getRootPane().setWindowDecorationStyle(JRootPane.NONE);
-    ((javax.swing.plaf.basic.BasicInternalFrameUI)this.getUI()).setNorthPane(null);
+    //((javax.swing.plaf.basic.BasicInternalFrameUI)this.getUI()).setNorthPane(null);
     this.dialogPanel = new DPanel();
-    this.getContentPane().add(dialogPanel, BorderLayout.CENTER);
+    this.dialogPanel.setPreferredSize(new Dimension(this.width, this.height));
+    //this.getContentPane().add(dialogPanel, BorderLayout.CENTER);
+    this.add(dialogPanel, BorderLayout.CENTER);
     this.addButtons(buttons);
+    this.pack();
   }
 
   public void addButtons(JButton buttons[]) {
@@ -193,10 +196,8 @@ public class InternalDialog extends JInternalFrame /*implements Dialog*/ {
           AWTEvent event  = theQueue.getNextEvent();
           Object   source = event.getSource();
           if (event instanceof ActiveEvent) {
-            System.out.println("ActiveEvent!");
             ((ActiveEvent) event).dispatch();
           } else if (source instanceof Component) {
-            System.out.println("COMPONENT!!!!");
             ((Component) source).dispatchEvent(event);
           } else if (source instanceof MenuComponent) {
             ((MenuComponent) source).dispatchEvent(event);
