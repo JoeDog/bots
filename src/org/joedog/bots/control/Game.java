@@ -2,7 +2,6 @@ package org.joedog.bots.control;
 
 import java.util.concurrent.TimeUnit;
 
-import org.joedog.bots.model.Config;
 import org.joedog.util.Sleep;
 
 public class Game {
@@ -20,7 +19,7 @@ public class Game {
    * @return void
    */
   public synchronized void start() {
-    int status = GameEngine.START;
+    int status = GameEngine.LOAD;
 
     while (control.paused()) {
       Sleep.milliseconds(500);
@@ -29,8 +28,11 @@ public class Game {
     while (status != GameEngine.DONE) {
       status = control.status();
       switch (status) {
-        case GameEngine.START:
+        case GameEngine.INIT:
           control.start();
+          break;
+        case GameEngine.LOAD:
+          control.newGame();
           break;
         case GameEngine.PLAY:
           break;

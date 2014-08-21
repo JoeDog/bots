@@ -15,18 +15,19 @@ import org.joedog.bots.view.GameBoard;
 import org.joedog.util.Sleep;
 
 public class GameEngine {
-  public final static int START  = 0;
-  public final static int PLAY   = 1;
-  public final static int OVER   = 2;
-  public final static int SCORE  = 3;
-  public final static int DONE   = 4;
+  public final static int INIT   = 0;
+  public final static int LOAD   = 1;
+  public final static int PLAY   = 2;
+  public final static int OVER   = 3;
+  public final static int SCORE  = 4;
+  public final static int DONE   = 5;
 
   private int x = 0;
   private int y = 0;
   private Thread      thread;
   private GameBoard   view;
   private Arena       arena;
-  private int status  = START;
+  private int status  = INIT;
   private AtomicBoolean hiatus   = new AtomicBoolean(false);
   private AtomicBoolean pause    = new AtomicBoolean(false);
   private boolean       over     = false; // XXX: should check life count
@@ -36,6 +37,14 @@ public class GameEngine {
     this.arena  = model;
     this.view   = view;
     this.engine = new GameRenderer();
+  }
+
+  public void newGame() {
+    if (arena.getLives() < 1) {
+      this.status = DONE;  
+    }
+    arena.load(arena.getLevel());
+    this.status = PLAY;
   }
 
   public void start() {
@@ -85,19 +94,21 @@ public class GameEngine {
 
   public synchronized int status () {
     switch (this.status) {
-      case START:
+      case INIT:
         if (arena.isReady()) 
-          this.status = PLAY;
+          this.status = LOAD;
         break;
       case PLAY:
         if (arena.getTurns() == 0) {
           this.status = OVER;
         }
+        if (arena.getLives() == 0) {
+          this.status = DONE;
+        }
         break;
       case OVER:
         break;
       case SCORE:
-        this.over = false;
         break;
       case DONE:
         /**
@@ -148,10 +159,8 @@ public class GameEngine {
           update((float)(delta / 1000000000.0));
           if (arena.getTurns() < 1) {
             String res = view.over();
-            System.out.println("RESULT: "+res);
             if (res.equals("OKAY")) {
-              arena.reset();
-              setStatus(START);
+              setStatus(LOAD);
             }
           } else {
             view.repaint();

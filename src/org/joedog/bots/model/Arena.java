@@ -50,12 +50,16 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
     if (this.scene == null) {
       this.scene  = Collections.synchronizedList(new ArrayList<Actor>());
     }
-    this.reset();
     this.runner = new ArenaRunner();
     this.runner.start();
   }
 
-  public synchronized void reset() {
+  public synchronized void load(int level) {
+    this.level = level;
+    this.load();
+  }
+
+  public synchronized void load() {
     this.ready  = false;
     this.checks = 0;
     this.removeAll();
@@ -111,6 +115,14 @@ public final class Arena implements ActorCollisionListener, SceneCollisionListen
 
   public int getLives() {
     return (this.lives < 1) ? 0 : this.lives; // don't want to send -1
+  }
+
+  public void setLevel(int level) {
+    this.level = level;
+  }
+
+  public int getLevel() {
+    return this.level;
   }
 
   private boolean swap(int ox, int oy, int nx, int ny) {
